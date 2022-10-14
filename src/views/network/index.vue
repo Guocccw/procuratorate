@@ -1,0 +1,331 @@
+<!--
+ * @Author: Guocc
+ * @Date: 2022-09-30 11:39:05
+ * @LastEditTime: 2022-10-12 17:11:11
+ * @LastEditors: Guocc
+ * @Description: 通用线索分析
+-->
+<template>
+  <div class="app-container">
+    <div class="formx boxshadow">
+      <el-form
+        :model="queryParams"
+        ref="queryForm"
+        :inline="true"
+        label-width="68px"
+      >
+        <el-form-item label="线索" prop="clues" label-width="40px">
+          <el-input
+            v-model="name"
+            placeholder="请输入线索"
+            clearable
+            size="small"
+            style="width: 160px"
+            :suffix-icon="showTree ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+            @click.native="deptogglePanel($event)"
+            @blur="close()"
+            @input="handleParamQuery"
+          />
+          <div v-if="showTree" class="treeDiv" ref="tableList">
+            <el-table
+              @row-click="handleRegionNodeClick"
+              ref="moviesTable"
+              :data="personnellist"
+              border
+              width="500px"
+              height="400px"
+              highlight-current-row
+              :header-cell-style="{
+                height: '10px',
+                padding: 0,
+              }"
+            >
+              <el-table-column prop="name" label="姓名"> </el-table-column>
+              <el-table-column prop="gender" label="性别"></el-table-column>
+              <el-table-column
+                prop="idCard"
+                label="身份证号"
+                width="200"
+              ></el-table-column>
+              <el-table-column
+                prop="caseNo"
+                label="案件编号"
+                width="200"
+              ></el-table-column>
+            </el-table>
+          </div>
+        </el-form-item>
+
+        <el-form-item>
+          <el-checkbox v-model="isLarge">扩大搜索范围</el-checkbox>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="cyan"
+            icon="el-icon-search"
+            size="mini"
+            @click="handleQuery"
+            >搜索</el-button
+          >
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
+            >重置</el-button
+          >
+        </el-form-item>
+      </el-form>
+    </div>
+    <div class="charts boxshadow" v-loading="listLoading">
+      <!-- <div ref="chart"> -->
+      <div class="infoBlock" v-show="nodexlist.length > 0">
+        <div class="nodexli" v-for="node in nodexlist" :key="node.label">
+          <div class="xlabel">{{ node.label }}：</div>
+          <div class="xvalue">{{ node.value }}</div>
+        </div>
+      </div>
+      <RelationGraph
+        ref="seeksRelationGraph"
+        :options="graphOptions"
+        :on-node-click="onNodeClick"
+        :on-line-click="onLineClick"
+      />
+      <!-- </div> -->
+    </div>
+  </div>
+</template>
+
+<script>
+import RelationGraph from "relation-graph";
+import { getList, getQueryList } from "@/api/network";
+export default {
+  data() {
+    return {
+      showTree: false,
+      personnellist: null,
+      listLoading: false,
+      queryParams: {
+        id: "",
+      },
+      name: "",
+      nodexlist: [],
+      graphOptions: {
+        allowSwitchLineShape: true,
+        allowSwitchJunctionPoint: true,
+        defaultJunctionPoint: "border",
+        // 这里可以参考"Graph 图谱"中的参数进行设置
+      },
+      keywordOptions: [
+        {
+          keywordName: "姓名",
+        },
+        {
+          keywordName: "性别",
+        },
+        {
+          keywordName: "绰号",
+        },
+        {
+          keywordName: "身份证号码",
+        },
+        {
+          keywordName: "案件编号",
+        },
+        {
+          keywordName: "身份",
+        },
+      ],
+      isLarge: false,
+      isLoading: false,
+    };
+  },
+  components: { RelationGraph },
+  mounted() {
+    this.handleQuery();
+    this.handleParamQuery();
+  },
+  methods: {
+    handleQuery() {
+      this.listLoading = true;
+      if (!this.queryParams.casePepId) {
+        this.queryParams.casePepId = this.$route.query.id;
+        if (!this.$route.query.id) {
+          this.listLoading = false;
+          return;
+        }
+      }
+
+      this.queryParams.expandSearch = this.isLarge == true ? 1 : 0;
+      getList(this.queryParams)
+        .then((res) => {
+          this.listLoading = false;
+          let links = res.data.links;
+          let nodes = res.data.nodeList;
+          for (let node of nodes) {
+            if (node.nodeType == "keyword") {
+              node.color = "#73c1ff";
+              node.borderColor = "#73c1ff";
+              node.width = "100";
+              node.height = "100";
+              node.styleClass = "keyword";
+            }
+            if (node.nodeType == "casePeople") {
+              node.color = "#085bc3";
+              node.borderColor = "#085bc3";
+              node.width = "120";
+              node.height = "120";
+              node.styleClass = "casePeople";
+            }
+          }
+          var jsonData = {
+            rootId: "a",
+            nodes: nodes,
+            links: links,
+          };
+          this.$nextTick(() => {
+            this.$refs.seeksRelationGraph.setJsonData(
+              jsonData,
+              (seeksRGGraph) => {
+                // Called when the relation-graph is completed
+                console.log(seeksRGGraph);
+              }
+            );
+          });
+        })
+        .catch((err) => {
+          this.listLoading = false;
+          this.$message.error(err.message);
+          console.log(err);
+        });
+    },
+    handleParamQuery() {
+      getQueryList({
+        keyword: this.name,
+      }).then((res) => {
+        this.personnellist = res.data;
+      });
+    },
+    handleRegionNodeClick(row) {
+      this.name = row.name;
+      this.queryParams.casePepId = row.casePepId;
+      this.handleQuery();
+      this.showTree = false;
+    },
+    deptogglePanel(event) {
+      event || (event = window.event);
+      event.stopPropagation
+        ? event.stopPropagation()
+        : (event.cancelBubble = true);
+      this.showTree = true;
+    },
+    close() {
+      let that = this;
+      setTimeout(() => {
+        that.showTree = false;
+      }, 500);
+    },
+    resetQuery() {
+      this.name = "";
+      this.isLarge = false;
+      this.queryParams = {};
+    },
+    onNodeClick(nodeObject, $event) {
+      let node = nodeObject.data;
+      if (node.type == "keyword") {
+        let label = node.keywordName;
+        let value = node.keywordValue;
+        this.nodexlist = [
+          {
+            label,
+            value,
+          },
+        ];
+      }
+      if (node.type == "casePeople") {
+        this.nodexlist = [
+          {
+            label: "姓名",
+            value: node.name,
+          },
+          {
+            label: "性别",
+            value: node.gender,
+          },
+          {
+            label: "身份证号",
+            value: node.idCard,
+          },
+          {
+            label: "案件编号",
+            value: node.caseNo,
+          },
+        ];
+      }
+      console.log(node);
+      if (node.type == "expand") {
+        this.nodexlist = [
+          {
+            label: "公文",
+            value: node.fileName,
+          },
+        ];
+      }
+    },
+    onLineClick(lineObject, $event) {
+      console.log("onLineClick:", lineObject);
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+.formx {
+  margin-bottom: 20px;
+  padding: 20px 30px;
+}
+.pagesx {
+  margin-top: 20px;
+}
+.boxshadow {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+}
+.mb8 {
+  margin-bottom: 20px;
+}
+.charts {
+  width: 100%;
+  padding: 30px;
+  height: 75vh;
+  position: relative;
+  .infoBlock {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    padding: 15px;
+    min-width: 300px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.12);
+    z-index: 888;
+    .nodexli {
+      display: flex;
+      font-size: 15px;
+      line-height: 26px;
+      .xlabel {
+        font-weight: 600;
+      }
+      .xvalue {
+        font-size: 14px;
+      }
+    }
+  }
+}
+.keyword {
+  font-size: 18px;
+}
+
+.casePeople {
+  font-size: 20px;
+}
+.treeDiv {
+  position: absolute;
+  z-index: 99999;
+}
+</style>
