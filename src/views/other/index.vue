@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-29 10:57:02
- * @LastEditTime: 2022-10-14 10:37:41
+ * @LastEditTime: 2022-10-14 14:39:18
  * @LastEditors: Guocc
  * @Description: 另案处理人员监控
 -->
@@ -72,7 +72,7 @@
             type="cyan"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
+            @click="search"
             >搜索</el-button
           >
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
@@ -368,6 +368,10 @@ export default {
     this.handleQuery();
   },
   methods: {
+    search() {
+      this.queryParams.pageNum = 0;
+      this.handleQuery();
+    },
     handleQuery() {
       this.listLoading = true;
       getList(this.queryParams)

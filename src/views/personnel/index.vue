@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-29 10:01:38
- * @LastEditTime: 2022-10-14 10:14:43
+ * @LastEditTime: 2022-10-19 19:44:24
  * @LastEditors: Guocc
  * @Description: 涉案人员信息库
 -->
@@ -54,9 +54,9 @@
           >
             <el-option
               v-for="dict in keywordOptions"
-              :key="dict.keywordName"
-              :label="dict.keywordName"
-              :value="dict.keywordName"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="dict.dictLabel"
             />
           </el-select>
           <el-input
@@ -72,7 +72,7 @@
             type="cyan"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
+            @click="search"
             >搜索</el-button
           >
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
@@ -120,11 +120,11 @@
             {{ scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column label="编号">
+        <!-- <el-table-column label="编号">
           <template slot-scope="scope">
             {{ scope.row.id }}
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="姓名" align="center">
           <template slot-scope="scope">
             <span>{{ scope.row.name }}</span>
@@ -287,9 +287,9 @@
                 >
                   <el-option
                     v-for="dict in keywordOptions"
-                    :key="dict.keywordName"
-                    :label="dict.keywordName"
-                    :value="dict.keywordName"
+                    :key="dict.dictValue"
+                    :label="dict.dictLabel"
+                    :value="dict.dictLabel"
                   />
                 </el-select>
               </el-form-item>
@@ -325,23 +325,7 @@ export default {
         pageSize: 10,
         total: 0,
       },
-      keywordOptions: [
-        // {
-        //   keywordName: "姓名",
-        // },
-        {
-          keywordName: "绰号",
-        },
-        // {
-        //   keywordName: "身份证号码",
-        // },
-        {
-          keywordName: "曾用名",
-        },
-        {
-          keywordName: "案件身份",
-        },
-      ],
+      keywordOptions: [],
       form: {
         title: "",
         innerVisible: false,
@@ -362,9 +346,16 @@ export default {
   created() {
     let id = this.$route.query.id;
     this.id = id;
+    this.getDicts("keyword").then((res) => {
+      this.keywordOptions = res.data;
+    });
     this.handleQuery();
   },
   methods: {
+    search() {
+      this.queryParams.pageNum = 0;
+      this.handleQuery();
+    },
     handleQuery() {
       this.listLoading = true;
       if (this.id) {

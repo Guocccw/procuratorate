@@ -1,7 +1,7 @@
 /*
  * @Author: Guocc
  * @Date: 2022-09-29 09:26:56
- * @LastEditTime: 2022-10-12 14:22:32
+ * @LastEditTime: 2022-10-19 19:04:09
  * @LastEditors: Guocc
  * @Description:
  */
@@ -21,10 +21,31 @@ import router from "./router";
 
 import "@/icons"; // icon
 import "@/permission"; // permission control
+import {
+  parseTime,
+  resetForm,
+  addDateRange,
+  selectDictLabel,
+  selectDictLabels,
+  download,
+  handleTree,
+  getYearMonth,
+  getAdcodeByCity,
+  getCityByAdcode,
+} from "@/utils/lx";
 
 import VueDirectiveImagePreviewer from "vue-directive-image-previewer";
 import "vue-directive-image-previewer/dist/assets/style.css";
+import Pagination from "@/components/Pagination";
+import { getDicts } from "@/api/system/dict/data";
+Vue.prototype.getDicts = getDicts;
+Vue.component("Pagination", Pagination);
 Vue.use(VueDirectiveImagePreviewer);
+Vue.prototype.addDateRange = addDateRange;
+Vue.prototype.resetForm = resetForm;
+Vue.prototype.selectDictLabel = selectDictLabel;
+Vue.prototype.selectDictLabels = selectDictLabels;
+Vue.prototype.parseTime = parseTime;
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -44,6 +65,9 @@ Vue.use(VueDirectiveImagePreviewer);
 Vue.use(ElementUI);
 
 Vue.config.productionTip = false;
+Vue.prototype.msgSuccess = function (msg) {
+  this.$message({ showClose: true, message: msg, type: "success" });
+};
 
 new Vue({
   el: "#app",

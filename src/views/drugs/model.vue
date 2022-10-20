@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-30 13:25:18
- * @LastEditTime: 2022-10-12 18:01:43
+ * @LastEditTime: 2022-10-19 20:02:54
  * @LastEditors: Guocc
  * @Description: 黄赌毒从业人员专项分析模型
 -->
@@ -149,6 +149,7 @@ export default {
         this.listLoading = false;
         let links = res.data.links;
         let nodes = res.data.nodeList;
+        let url = "";
         for (let node of nodes) {
           console.log(node.nodeType);
           if (node.nodeType == "keyword") {
@@ -174,11 +175,20 @@ export default {
             node.styleClass = "keyword";
           }
           if (node.nodeType == "casePeople0") {
-            node.color = "#FF6347";
-            node.borderColor = "#FF6347";
-            node.width = "120";
-            node.height = "120";
-            node.styleClass = "casePeople";
+            console.log(node);
+            url = node.data.photoUrl;
+            let innerHTML =
+              '<div class="c-my-node" style="background-image: url(' +
+              url +
+              ');"><div class="c-node-name" style="color:#ff875e">' +
+              node.data.name +
+              "</div></div>";
+            // node.color = "#FF6347";
+            // node.borderColor = "#FF6347";
+            // node.width = "120";
+            // node.height = "120";
+            // node.styleClass = "casePeople";
+            node.innerHTML = innerHTML;
           }
         }
         var jsonData = {
@@ -236,6 +246,27 @@ export default {
   },
 };
 </script>
+
+<style>
+.c-my-node {
+  background-position: center center;
+  background-size: 100%;
+  border: #ff8c00 solid 2px;
+  height: 80px;
+  width: 80px;
+  border-radius: 40px;
+}
+
+.c-node-name {
+  width: 160px;
+  margin-left: -40px;
+  text-align: center;
+  margin-top: 85px;
+}
+.rel-node {
+  border: 0 !important;
+}
+</style>
 
 <style lang="scss" scoped>
 .container {

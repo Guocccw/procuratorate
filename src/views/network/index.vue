@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-30 11:39:05
- * @LastEditTime: 2022-10-12 17:11:11
+ * @LastEditTime: 2022-10-19 20:50:13
  * @LastEditors: Guocc
  * @Description: 通用线索分析
 -->
@@ -64,7 +64,7 @@
             type="cyan"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
+            @click="search"
             >搜索</el-button
           >
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
@@ -86,8 +86,70 @@
         :options="graphOptions"
         :on-node-click="onNodeClick"
         :on-line-click="onLineClick"
-      />
+      >
+        <div
+          slot="node"
+          slot-scope="{ node }"
+          @mouseover="showNodeTips(node, $event)"
+          @mouseout="hideNodeTips(node, $event)"
+        >
+          <div
+            style="
+              height: 64px;
+              line-height: 64px;
+              border-radius: 32px;
+              cursor: pointer;
+            "
+          >
+            <i style="font-size: 30px" :class="node.data.myicon" />
+          </div>
+          <div
+            style="
+              color: forestgreen;
+              font-size: 16px;
+              position: absolute;
+              width: 160px;
+              height: 25px;
+              line-height: 25px;
+              margin-top: 5px;
+              margin-left: -48px;
+              text-align: center;
+              background-color: rgba(66, 187, 66, 0.2);
+            "
+          >
+            {{ node.data.myicon }}
+          </div>
+        </div>
+      </RelationGraph>
       <!-- </div> -->
+    </div>
+    <div
+      v-if="isShowNodeTipsPanel"
+      :style="{
+        left: nodeMenuPanelPosition.x + 'px',
+        top: nodeMenuPanelPosition.y + 'px',
+      }"
+      style="
+        z-index: 999;
+        padding: 10px;
+        background-color: #ffffff;
+        border: #eeeeee solid 1px;
+        box-shadow: 0px 0px 8px #cccccc;
+        position: absolute;
+      "
+    >
+      <div
+        style="
+          line-height: 25px;
+          padding-left: 10px;
+          color: #888888;
+          font-size: 12px;
+        "
+      >
+        节点名称：{{ currentNode.text }}
+      </div>
+      <div class="c-node-menu-item">id:{{ currentNode.text }}</div>
+      <div class="c-node-menu-item">图标:{{ currentNode.data.myicon }}</div>
     </div>
   </div>
 </template>
@@ -101,9 +163,11 @@ export default {
       showTree: false,
       personnellist: null,
       listLoading: false,
+      isShowNodeTipsPanel: false,
       queryParams: {
         id: "",
       },
+      nodeMenuPanelPosition: { x: 0, y: 0 },
       name: "",
       nodexlist: [],
       graphOptions: {
@@ -142,6 +206,10 @@ export default {
     this.handleParamQuery();
   },
   methods: {
+    search() {
+      this.queryParams.pageNum = 0;
+      this.handleQuery();
+    },
     handleQuery() {
       this.listLoading = true;
       if (!this.queryParams.casePepId) {
@@ -160,26 +228,37 @@ export default {
           let nodes = res.data.nodeList;
           for (let node of nodes) {
             if (node.nodeType == "keyword") {
-              node.color = "#73c1ff";
-              node.borderColor = "#73c1ff";
+              node.color = "#1f6ed4";
+              node.borderColor = "#1f6ed4";
               node.width = "100";
               node.height = "100";
               node.styleClass = "keyword";
             }
             if (node.nodeType == "casePeople") {
-              node.color = "#085bc3";
-              node.borderColor = "#085bc3";
+              node.color = "#0000a1";
+              node.borderColor = "#0000a1";
               node.width = "120";
               node.height = "120";
               node.styleClass = "casePeople";
             }
           }
+          let newLinks = [];
+          links.map((item, index) => {
+            newLinks.push(
+              Object.assign(item, {
+                lineWidth: 6,
+                lineShape: 1,
+                color: "rgba(30, 144, 255, 1)",
+              })
+            );
+          });
           var jsonData = {
             rootId: "a",
             nodes: nodes,
-            links: links,
+            links: newLinks,
           };
           this.$nextTick(() => {
+            // this.$refs.seeksRelationGraph.setLines();
             this.$refs.seeksRelationGraph.setJsonData(
               jsonData,
               (seeksRGGraph) => {
@@ -226,7 +305,19 @@ export default {
       this.isLarge = false;
       this.queryParams = {};
     },
+    showNodeTips(nodeObject, $event) {
+      this.currentNode = nodeObject;
+      var _base_position = this.$refs.myPage.getBoundingClientRect();
+      console.log("showNodeMenus:", $event, _base_position);
+      this.isShowNodeTipsPanel = true;
+      this.nodeMenuPanelPosition.x = $event.clientX - _base_position.x + 10;
+      this.nodeMenuPanelPosition.y = $event.clientY - _base_position.y + 10;
+    },
+    hideNodeTips(nodeObject, $event) {
+      this.isShowNodeTipsPanel = false;
+    },
     onNodeClick(nodeObject, $event) {
+      console.log(nodeObject);
       let node = nodeObject.data;
       if (node.type == "keyword") {
         let label = node.keywordName;
@@ -318,12 +409,20 @@ export default {
   }
 }
 .keyword {
-  font-size: 18px;
+  font-size: 34px;
 }
 
 .casePeople {
-  font-size: 20px;
+  font-size: 26px;
 }
+::v-deep .rel-node-peel {
+  font-size: 22px;
+}
+
+::v-deep .rel-node-checked {
+  box-shadow: 0px 0px 50px #39bae8;
+}
+
 .treeDiv {
   position: absolute;
   z-index: 99999;

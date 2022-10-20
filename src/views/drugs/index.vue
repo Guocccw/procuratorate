@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-29 10:47:01
- * @LastEditTime: 2022-10-12 17:57:24
+ * @LastEditTime: 2022-10-14 14:38:55
  * @LastEditors: Guocc
  * @Description: 黄赌毒专项线索分析
 -->
@@ -72,7 +72,7 @@
             type="cyan"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
+            @click="search"
             >搜索</el-button
           >
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
@@ -374,6 +374,10 @@ export default {
     this.handleQuery();
   },
   methods: {
+    search() {
+      this.queryParams.pageNum = 0;
+      this.handleQuery();
+    },
     handleQuery() {
       this.listLoading = true;
       getList(this.queryParams)

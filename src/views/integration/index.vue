@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-29 10:58:08
- * @LastEditTime: 2022-10-14 11:14:30
+ * @LastEditTime: 2022-10-19 19:50:47
  * @LastEditors: Guocc
  * @Description: 检察一体化模型
 -->
@@ -69,7 +69,7 @@
             type="cyan"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
+            @click="search"
             >搜索</el-button
           >
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery"
@@ -253,12 +253,7 @@ export default {
           dictValue: 4,
         },
       ],
-      keywordOptions: [
-        {
-          keywordName: "",
-          keywordValue: 20,
-        },
-      ],
+      keywordOptions: [],
     };
   },
   components: {
@@ -268,6 +263,10 @@ export default {
     this.handleQuery();
   },
   methods: {
+    search() {
+      this.queryParams.pageNum = 0;
+      this.handleQuery();
+    },
     handleQuery() {
       this.listLoading = true;
       getList(this.queryParams)

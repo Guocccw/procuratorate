@@ -1,7 +1,7 @@
 /*
  * @Author: Guocc
  * @Date: 2022-09-29 09:26:56
- * @LastEditTime: 2022-09-30 13:18:21
+ * @LastEditTime: 2022-10-19 19:30:51
  * @LastEditors: Guocc
  * @Description:
  */
@@ -111,6 +111,25 @@ export const constantRoutes = [
         name: "integration",
         component: () => import("@/views/integration/index"),
         meta: { title: "检察一体化模型", icon: "form" },
+      },
+    ],
+  },
+  {
+    path: "/dict",
+    component: Layout,
+    children: [
+      {
+        path: "index",
+        name: "dict",
+        component: () => import("@/views/dict/index"),
+        meta: { title: "字典", icon: "form" },
+      },
+      {
+        path: "data",
+        name: "data",
+        component: () => import("@/views/dict/data"),
+        meta: { title: "字典", icon: "form" },
+        hidden: true,
       },
     ],
   },
