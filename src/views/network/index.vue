@@ -1,7 +1,7 @@
 <!--
  * @Author: Guocc
  * @Date: 2022-09-30 11:39:05
- * @LastEditTime: 2022-10-19 20:50:13
+ * @LastEditTime: 2022-10-20 09:58:54
  * @LastEditors: Guocc
  * @Description: 通用线索分析
 -->
@@ -87,39 +87,6 @@
         :on-node-click="onNodeClick"
         :on-line-click="onLineClick"
       >
-        <div
-          slot="node"
-          slot-scope="{ node }"
-          @mouseover="showNodeTips(node, $event)"
-          @mouseout="hideNodeTips(node, $event)"
-        >
-          <div
-            style="
-              height: 64px;
-              line-height: 64px;
-              border-radius: 32px;
-              cursor: pointer;
-            "
-          >
-            <i style="font-size: 30px" :class="node.data.myicon" />
-          </div>
-          <div
-            style="
-              color: forestgreen;
-              font-size: 16px;
-              position: absolute;
-              width: 160px;
-              height: 25px;
-              line-height: 25px;
-              margin-top: 5px;
-              margin-left: -48px;
-              text-align: center;
-              background-color: rgba(66, 187, 66, 0.2);
-            "
-          >
-            {{ node.data.myicon }}
-          </div>
-        </div>
       </RelationGraph>
       <!-- </div> -->
     </div>
@@ -246,7 +213,7 @@ export default {
           links.map((item, index) => {
             newLinks.push(
               Object.assign(item, {
-                lineWidth: 6,
+                lineWidth: 2,
                 lineShape: 1,
                 color: "rgba(30, 144, 255, 1)",
               })
@@ -308,7 +275,6 @@ export default {
     showNodeTips(nodeObject, $event) {
       this.currentNode = nodeObject;
       var _base_position = this.$refs.myPage.getBoundingClientRect();
-      console.log("showNodeMenus:", $event, _base_position);
       this.isShowNodeTipsPanel = true;
       this.nodeMenuPanelPosition.x = $event.clientX - _base_position.x + 10;
       this.nodeMenuPanelPosition.y = $event.clientY - _base_position.y + 10;
@@ -317,7 +283,30 @@ export default {
       this.isShowNodeTipsPanel = false;
     },
     onNodeClick(nodeObject, $event) {
-      console.log(nodeObject);
+      let allNodes = this.$refs.seeksRelationGraph.getNodes();
+      console.log(allNodes);
+      for (let itemNode of allNodes) {
+        itemNode.borderWidth = 0;
+        if (itemNode.data.type == "keyword") {
+          itemNode.color = "#1f6ed4";
+          itemNode.borderColor = "#1f6ed4";
+          itemNode.width = "100";
+          itemNode.height = "100";
+          itemNode.styleClass = "keyword";
+        }
+        if (itemNode.data.type == "casePeople") {
+          itemNode.color = "#0000a1";
+          itemNode.borderColor = "#0000a1";
+          itemNode.width = "120";
+          itemNode.height = "120";
+          itemNode.styleClass = "casePeople";
+        }
+      }
+      for (let childNode of nodeObject.targetNodes) {
+        childNode.borderWidth = 3;
+        childNode.borderColor = "red";
+        childNode.color = "red";
+      }
       let node = nodeObject.data;
       if (node.type == "keyword") {
         let label = node.keywordName;
@@ -349,7 +338,6 @@ export default {
           },
         ];
       }
-      console.log(node);
       if (node.type == "expand") {
         this.nodexlist = [
           {
